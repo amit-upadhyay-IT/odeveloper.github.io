@@ -1,33 +1,17 @@
-html {
-background-color:  #e0e4e0 !important;
-  }
-body {
-padding-top: 10px;
-font-size: 16px;
-background: transparent;
-}
-    ul li {
-  color: limegreen;
-         list-style-type: disc;
-  margin-left: 2em;
-    }
-
-
-ul li span {
-  color: black;
+.headingFont{
+    font-family: kaushan-script, cursive;
+    font-size: 40px;
 }
 
-    #chatWindow{
-        display:none;
-    }
+.brandFont{
+    font-family: kaushan-script, cursive;
+    font-size: 25px;
+}
 
- .whisper{
-  /* color:	#0e492d;*/
-   color: #845422;
-   font-style:italic;
-   font-weight: bold;
- }
+.mainLines{
+    font-size:30px;
+}
 
- .error{
-   color:#800000;
- }
+.menus{
+    font-size:18px;
+}

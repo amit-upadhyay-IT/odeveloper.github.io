@@ -1,76 +1,67 @@
-var express=require('express'),
-    app=express(),
-    server=require('http').createServer(app),
-    io=require('socket.io').listen(server);
+var chalk = require('chalk');
+var express=require('express');
+var mongoose=require('mongoose');
+var db=require('./models/db.js');
 
-    users={};
-var port = process.env.PORT || 4000;
-    server.listen(port);
+var routes=require('./routes/route.js');
+var user=require('./routes/user.js');
+var story=require('./routes/story.js');
+var bodyParser=require('body-parser');
 
-app.use(express.static(__dirname + '/public'));
+var session=require('express-session');
+//var cookieParser=require('cookie-parser');
+
+var app=express();
+
 app.set('view engine','ejs');
 
-app.get('/',function(req,res){
-     res.render('index');
+app.use(express.static(__dirname + '/public'));
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended:false}));
+//app.use(cookieParser());
+var session=require('express-session');
+app.use(session({secret:"qazwsxedcrfvtgbyhnujm",resave: true, saveUninitialized: true}));
+
+
+app.get('/',routes.index);
+
+app.get('/stories',story.stories);
+
+app.get('/register',routes.register);
+
+app.post('/newUser',user.doCreate);
+
+app.get('/registrationSuccessful',user.registrationSuccessful);
+
+app.get('/login',routes.login);
+
+app.post('/authenticate',user.login);
+
+app.get('/new-story',routes.newStory);
+app.post('/add-story',story.addStory);
+
+
+app.get('/stories/:story',story.getStory);
+
+app.post('/stories/:slug/saveComment',story.saveComment);
+
+app.get('/techStack',routes.techStack);
+
+app.get('/logout',user.logout);
+
+app.use(function(req, res) {
+     console.log(chalk.red("Error: 404"));
+     res.status(404).render('404');
 });
 
-io.sockets.on('connection',function(socket){
+app.use(function(error, req, res, next) {
+     console.log(chalk.red('Error : 500'+error))
+     res.status(500).render('500');
+});
 
-      console.log("A New Connection Established");
+var port = process.env.PORT || 8080;
 
-      socket.on('new user',function(data,callback){
-        if(data in users){
-          console.log("Username already taken");
-          callback(false);
-        }else{
-          console.log("Username available");
-          callback(true);
-          socket.nickname=data;
-          users[socket.nickname]=socket;
-          updateNicknames();
-        }
-      });
-
-
-      function updateNicknames(){
-        io.sockets.emit('usernames',Object.keys(users));
-      }
-
-
-      socket.on('send message',function(data,callback){
-        var msg=data.trim();
-
-        if(msg.substr(0,1) === '@'){
-          msg=msg.substr(1);
-          var ind=msg.indexOf(' ');
-          if(ind !== -1){
-            var name=msg.substring(0,ind);
-            var msg=msg.substring(ind+1);
-             if(name in users){
-                users[name].emit('whisper',{msg:msg,nick:socket.nickname});
-                socket.emit('private',{msg:msg,nick:name});
-              console.log("Whispering !");
-            }else{
-              callback("Sorry, "+name+" is not online");
-            }
-          }else{
-            callback("Looks like you forgot to write the message");
-          }
-
-        }
-
-         else{
-         console.log("Got Message :"+data)
-         io.sockets.emit('new message',{msg:msg,nick:socket.nickname});
-           }
-      });
-
-
-      socket.on('disconnect',function(data){
-            if(!socket.nickname) return;
-            delete users[socket.nickname];
-            updateNicknames();
-      });
-
-
+var server=app.listen(port,function(req,res){
+    console.log(chalk.green("Catch the action at http://localhost:"+port));
 });
